@@ -6,7 +6,7 @@ servers:
 - url: "{server}:{port}/reservations"
   variables:
     port:
-      default: '9090'
+      default: '4000'
     server:
       default: http://localhost
 paths:
