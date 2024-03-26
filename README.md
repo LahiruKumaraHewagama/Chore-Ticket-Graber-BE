@@ -1,2 +1,2 @@
-# ticket booking  appplication
+# Ticket booking  application
 
