@@ -1,17 +1,17 @@
 type Reservation = {
   id: string;
-  room: Room;
+  ticket: Ticket;
   checkinDate: string;
   checkoutDate: string;
   user: User;
 };
 
-type Room = {
+type Ticket = {
   number: number;
-  type: RoomType;
+  type: TicketType;
 };
 
-type RoomType = {
+type TicketType = {
   id: number;
   name: string;
   guestCapacity: number;
@@ -29,7 +29,7 @@ type NewReservationRequest = {
   checkinDate: string;
   checkoutDate: string;
   user: User;
-  roomType: string;
+  ticketType: string;
 };
 
 type UpdateReservationRequest = {

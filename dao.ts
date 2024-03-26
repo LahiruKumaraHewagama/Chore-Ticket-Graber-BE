@@ -1,10 +1,10 @@
 import { getClient } from "./postgresql";
 
 /**
- * getAllRooms returns all the rooms
- * @returns Promise<Room[]>
+ * getAllTickets returns all the tickets
+ * @returns Promise<Ticket[]>
  */
-export async function getAllRooms(): Promise<Room[]> {
+export async function getAllTickets(): Promise<Ticket[]> {
   const client = await getClient();
   try {
     const result = await client.query(`SELECT 
@@ -16,9 +16,9 @@ export async function getAllRooms(): Promise<Room[]> {
             'price', rt.price
         ) AS type
     FROM 
-        room r
+        ticket r
     JOIN 
-        room_type rt ON r.type = rt.id;`);
+        ticket_type rt ON r.type = rt.id;`);
     return result.rows;
   } finally {
     client.release();
@@ -26,7 +26,7 @@ export async function getAllRooms(): Promise<Room[]> {
 }
 
 /**
- * getAvailableRoomTypes returns available room
+ * getAvailableTicketTypes returns available ticket
  * types for a given date range for a given guest capacity.
  *
  * @param checkInDate - CheckIn Date
@@ -34,7 +34,7 @@ export async function getAllRooms(): Promise<Room[]> {
  * @param guestCapacity - Guest capacity
  * @returns
  */
-export async function getAvailableRoomTypes(
+export async function getAvailableTicketTypes(
   checkInDate: string,
   checkOutDate: string,
   guestCapacity: number
@@ -43,14 +43,14 @@ export async function getAvailableRoomTypes(
   try {
     const result = await client.query(
       `SELECT rt.id, rt.name, rt.guest_capacity, rt.price
-      FROM room_type rt
+      FROM ticket_type rt
       WHERE rt.guest_capacity >= $1
       AND rt.id IN (
           SELECT r.type
-          FROM room r
+          FROM ticket r
           WHERE r.type = rt.id
           AND r.number NOT IN (
-              SELECT res.room
+              SELECT res.ticket
               FROM reservation res
               WHERE $2 <= res.checkout_date
               AND $3 >= res.checkin_date
@@ -66,33 +66,33 @@ export async function getAvailableRoomTypes(
 }
 
 /**
- * getAvailableRooms returns a list of available
- * rooms for a given data range and for a given room type.
+ * getAvailableTickets returns a list of available
+ * tickets for a given data range and for a given ticket type.
  *
  * @param checkInDate - CheckIn Date
  * @param checkOutDate - CheckOut Date
- * @param roomType - Type of the room
+ * @param ticketType - Type of the ticket
  * @returns
  */
-export async function getAvailableRooms(
+export async function getAvailableTickets(
   checkInDate: string,
   checkOutDate: string,
-  roomType: string
+  ticketType: string
 ) {
   const client = await getClient();
   try {
     const result = await client.query(
-      `WITH room_type_id AS (
+      `WITH ticket_type_id AS (
         SELECT id
-        FROM room_type
+        FROM ticket_type
         WHERE name = $1
     )
     SELECT r.number
-    FROM room r
-    CROSS JOIN room_type_id
-    WHERE r.type = room_type_id.id
+    FROM ticket r
+    CROSS JOIN ticket_type_id
+    WHERE r.type = ticket_type_id.id
     AND r.number NOT IN (
-        SELECT res.room
+        SELECT res.ticket
         FROM reservation res
         WHERE (
             $2 < res.checkout_date
@@ -100,7 +100,7 @@ export async function getAvailableRooms(
         )
     );
           `,
-      [roomType, checkInDate, checkOutDate]
+      [ticketType, checkInDate, checkOutDate]
     );
     return result.rows;
   } finally {
@@ -116,13 +116,13 @@ export async function getAvailableRooms(
  */
 export async function createReservation(reservation: Reservation) {
   const client = await getClient();
-  const { id, room, checkinDate, checkoutDate, user } = reservation;
+  const { id, ticket, checkinDate, checkoutDate, user } = reservation;
   try {
     const result = await client.query(
-      `INSERT INTO reservation ("id", "room", "checkin_date", "checkout_date", "user", "user_info", "created_at", "updated_at")
+      `INSERT INTO reservation ("id", "ticket", "checkin_date", "checkout_date", "user", "user_info", "created_at", "updated_at")
     VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
     `,
-      [id, room, checkinDate, checkoutDate, user.id, user]
+      [id, ticket, checkinDate, checkoutDate, user.id, user]
     );
     return result.rows;
   } finally {
@@ -144,7 +144,7 @@ export async function getReservations(userId: string) {
       `SELECT 
       json_build_object(
           'id', res.id,
-          'room', json_build_object(
+          'ticket', json_build_object(
               'number', r.number,
               'type', json_build_object(
                   'number', r.number,
@@ -160,9 +160,9 @@ export async function getReservations(userId: string) {
   FROM 
       reservation res
   JOIN 
-      room r ON res.room = r.number
+      ticket r ON res.ticket = r.number
   JOIN 
-      room_type rt ON r.type = rt.id
+      ticket_type rt ON r.type = rt.id
   WHERE 
       res.user = $1;
   
@@ -188,7 +188,7 @@ export async function getReservation(reservationId: string) {
       `SELECT 
       json_build_object(
           'id', res.id,
-          'room', json_build_object(
+          'ticket', json_build_object(
               'number', r.number,
               'type', json_build_object(
                   'number', r.number,
@@ -204,9 +204,9 @@ export async function getReservation(reservationId: string) {
   FROM 
       reservation res
   JOIN 
-      room r ON res.room = r.number
+      ticket r ON res.ticket = r.number
   JOIN 
-      room_type rt ON r.type = rt.id
+      ticket_type rt ON r.type = rt.id
   WHERE 
       res.id = $1;
     `,

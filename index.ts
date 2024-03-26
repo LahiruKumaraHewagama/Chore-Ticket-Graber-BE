@@ -1,5 +1,5 @@
 import express, { Express} from "express";
-import { getAllRooms } from "./util";
+import { getAllTickets } from "./util";
 import cors from "cors";
 
 import { reservationRouter } from "./routes/reservation_route";
@@ -10,8 +10,8 @@ const port = 4000;
 app.use(cors());
 app.use(express.json());
 
-export const rooms: Room[] = getAllRooms();
-export const roomReservations: { [id: string]: Reservation } = {};
+export const tickets: Ticket[] = getAllTickets();
+export const ticketReservations: { [id: string]: Reservation } = {};
 
 
 app.use("/api/reservations", reservationRouter);

@@ -1,6 +1,6 @@
-import { roomReservations, rooms } from ".";
+import { ticketReservations, tickets } from ".";
 
-export function getAllRooms(): Room[] {
+export function getAllTickets(): Ticket[] {
   return [
     {
       number: 101,
@@ -218,71 +218,71 @@ export function getAllRooms(): Room[] {
         price: 300,
       },
     },
-    // Add other room objects here
+    // Add other ticket objects here
   ];
 }
 
-export function getAllocatedRooms(
+export function getAllocatedTickets(
   checkinDate: string,
   checkoutDate: string
-): { [number: number]: Room } {
+): { [number: number]: Ticket } {
   const userCheckinUTC: Date = new Date(checkinDate);
   const userCheckoutUTC: Date = new Date(checkoutDate);
 
-  const allocatedRooms: { [number: number]: Room } = {};
+  const allocatedTickets: { [number: number]: Ticket } = {};
 
-  for (const reservation of Object.values(roomReservations)) {
+  for (const reservation of Object.values(ticketReservations)) {
     const rCheckin: Date = new Date(reservation.checkinDate);
     const rCheckout: Date = new Date(reservation.checkoutDate);
 
     if (userCheckinUTC <= rCheckin && userCheckoutUTC >= rCheckout) {
-      allocatedRooms[reservation.room.number] = reservation.room;
+      allocatedTickets[reservation.ticket.number] = reservation.ticket;
     }
   }
 
-  return allocatedRooms;
+  return allocatedTickets;
 }
 
-export function getAvailableRoom(
+export function getAvailableTicket(
   checkinDate: string,
   checkoutDate: string,
-  roomType: string
-): Room | null {
-  const allocatedRooms = getAllocatedRooms(checkinDate, checkoutDate);
+  ticketType: string
+): Ticket | null {
+  const allocatedTickets = getAllocatedTickets(checkinDate, checkoutDate);
 
-  for (const room of rooms) {
+  for (const ticket of tickets) {
     if (
-      room.type.name === roomType &&
-      (!allocatedRooms || !(room.number in allocatedRooms))
+      ticket.type.name === ticketType &&
+      (!allocatedTickets || !(ticket.number in allocatedTickets))
     ) {
-      return room;
+      return ticket;
     }
   }
   return null;
 }
 
-export function getAvailableRoomTypes(
+export function getAvailableTicketTypes(
   checkinDate: string,
   checkoutDate: string,
   guestCapacity: number
 ) {
   try {
-    // Call the function to get allocated rooms
-    const allocatedRooms = getAllocatedRooms(checkinDate, checkoutDate);
-    console.log("allocatedRooms", allocatedRooms);
-    console.log("rooms", rooms);
-    // Filter available room types based on guest capacity and allocated rooms
-    const availableRoomTypes = rooms
-      .filter((room) => {
+    // Call the function to get allocated tickets
+    const allocatedTickets = getAllocatedTickets(checkinDate, checkoutDate);
+    console.log("allocatedTickets", allocatedTickets);
+    console.log("tickets", tickets);
+    // Filter available ticket types based on guest capacity and allocated tickets
+    const availableTicketTypes = tickets
+      .filter((ticket) => {
         return (
-          room.type.guestCapacity >= guestCapacity &&
-          !allocatedRooms[room.number]
+          ticket.type.guestCapacity >= guestCapacity &&
+          !allocatedTickets[ticket.number]
         );
       })
-      .map((room) => room.type);
-    console.log("availableRoomTypes", availableRoomTypes);
-    return availableRoomTypes;
+      .map((ticket) => ticket.type);
+    console.log("availableTicketTypes", availableTicketTypes);
+    return availableTicketTypes;
   } catch (error) {
-    throw new Error("Error occurred while fetching available room types");
+    throw new Error("Error occurred while fetching available ticket types");
   }
 }

@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import {
     createReservation,
     deleteReservation,
-    getAvailableRoomTypes,
-    getAvailableRooms,
+    getAvailableTicketTypes,
+    getAvailableTickets,
     getReservation,
     getReservations,
     updateReservation,
@@ -17,16 +17,16 @@ export const createReservationController = async (
     try {
         const payload = req.body;
         console.log("Request received by POST /reservations", payload);
-        // Check if room is available for the given dates
-        const availableRooms = await getAvailableRooms(
+        // Check if ticket is available for the given dates
+        const availableTickets = await getAvailableTickets(
           payload.checkinDate,
           payload.checkoutDate,
-          payload.roomType
+          payload.ticketType
         );
-        if (availableRooms.length == 0) {
+        if (availableTickets.length == 0) {
           return res.status(400).send({
             http: "NotFound",
-            body: "No rooms available for the given dates and type",
+            body: "No tickets available for the given dates and type",
           });
         }
   
@@ -34,7 +34,7 @@ export const createReservationController = async (
         const reservation = {
           id: uuidv4(),
           user: payload.user,
-          room: availableRooms[0].number,
+          ticket: availableTickets[0].number,
           checkinDate: payload.checkinDate,
           checkoutDate: payload.checkoutDate,
         };
@@ -47,11 +47,11 @@ export const createReservationController = async (
       }
     };
 
-export const getRoomTypesController = async (
+export const getTicketTypesController = async (
   req: Request,
   res: Response<Reservation[] | {}>
 ) => {
-    console.log("Request received by GET /reservations/roomTypes", req.query);
+    console.log("Request received by GET /reservations/ticketTypes", req.query);
   const { checkinDate, checkoutDate, guestCapacity } = req.query;
 
   // Validate query parameters
@@ -59,14 +59,14 @@ export const getRoomTypesController = async (
     return res.status(400).json({ error: "Missing required parameters" });
   }
 
-  // Call the function to get available room types
+  // Call the function to get available ticket types
   try {
-    const roomTypes = await getAvailableRoomTypes(
+    const ticketTypes = await getAvailableTicketTypes(
       checkinDate.toString(),
       checkoutDate.toString(),
       parseInt(guestCapacity.toString(), 10)
     );
-    res.json(roomTypes);
+    res.json(ticketTypes);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -98,13 +98,13 @@ export const updateReservationController = async (
         if (reservation == null) {
           res.json({ http: "NotFound", body: "Reservation not found" });
         } else {
-          const rooms = await getAvailableRooms(
+          const tickets = await getAvailableTickets(
             checkinDate,
             checkoutDate,
-            reservation.reservation.room.type.name
+            reservation.reservation.ticket.type.name
           );
-          if (rooms.length == 0) {
-            res.json({ http: "NotFound", body: "No rooms available" });
+          if (tickets.length == 0) {
+            res.json({ http: "NotFound", body: "No tickets available" });
           }
           const updatedReservation = await updateReservation(
             reservation.reservation.id,
